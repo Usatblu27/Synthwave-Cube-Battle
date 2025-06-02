@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Synthwave Cube Battle</title>
+    <style>
+      :root {
+        --neon-pink: #ff2a6d;
+        --neon-blue: #05d9e8;
+        --neon-purple: #d300c5;
+        --neon-green: #00ff87;
+        --dark-blue: #0d0221;
+        --deep-purple: #1a0933;
+        --grid-color: rgba(44, 232, 245, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--dark-blue);
+        color: white;
+        font-family: "Courier New", monospace;
+        overflow: hidden;
+        touch-action: none;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      .game-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Экран загрузки */
+      .loading-screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(
+          ellipse at center,
+          var(--deep-purple) 0%,
+          var(--dark-blue) 100%
+        );
+      }
+
+      .synthwave-logo {
+        width: 200px;
+        height: 200px;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="50%" font-family="Arial" font-size="20" fill="%2305d9e8" text-anchor="middle" dominant-baseline="middle">SYNTHWAVE</text></svg>')
+          no-repeat center;
+        margin-bottom: 30px;
+      }
+
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        border: 2px solid var(--neon-blue);
+        border-radius: 10px;
+        margin-top: 30px;
+        overflow: hidden;
+        box-shadow: 0 0 10px var(--neon-blue);
+      }
+
+      .progress {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(
+          90deg,
+          var(--neon-pink),
+          var(--neon-purple)
+        );
+        transition: width 0.3s;
+      }
+
+      /* Главное меню */
+      .main-menu {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(
+          ellipse at center,
+          var(--deep-purple) 0%,
+          var(--dark-blue) 100%
+        );
+      }
+
+      .menu-header {
+        text-align: center;
+        margin-bottom: 50px;
+        text-shadow: 0 0 10px var(--neon-blue);
+      }
+
+      .menu-header h1 {
+        font-size: 4rem;
+        color: var(--neon-pink);
+        letter-spacing: 3px;
+        margin-bottom: 10px;
+      }
+
+      .menu-header h2 {
+        font-size: 2rem;
+        color: var(--neon-blue);
+      }
+
+      .menu-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .menu-buttons button {
+        background: transparent;
+        color: white;
+        border: 2px solid var(--neon-blue);
+        padding: 15px 40px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .menu-buttons button:hover {
+        background: var(--neon-blue);
+        color: var(--dark-blue);
+        box-shadow: 0 0 20px var(--neon-blue);
+      }
+
+      /* Экран выбора комнаты */
+      .room-selection {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(
+          ellipse at center,
+          var(--deep-purple) 0%,
+          var(--dark-blue) 100%
+        );
+      }
+
+      .room-header h2 {
+        color: var(--neon-green);
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        text-shadow: 0 0 5px var(--neon-green);
+      }
+
+      .room-options {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 50px;
+      }
+
+      .room-option {
+        padding: 20px 30px;
+        border: 2px solid var(--neon-purple);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+      }
+
+      .room-option:hover {
+        background: rgba(211, 0, 197, 0.2);
+        box-shadow: 0 0 15px var(--neon-purple);
+      }
+
+      .room-option h3 {
+        color: var(--neon-pink);
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+      }
+
+      .room-option p {
+        color: var(--neon-blue);
+      }
+
+      .searching {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .searching p {
+        color: var(--neon-blue);
+        font-size: 1.2rem;
+      }
+
+      .players-found {
+        font-size: 2rem;
+        color: var(--neon-green);
+      }
+
+      /* Экран выбора класса */
+      .class-selection {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding-top: 50px;
+        background: radial-gradient(
+          ellipse at center,
+          var(--deep-purple) 0%,
+          var(--dark-blue) 100%
+        );
+      }
+
+      .selection-header {
+        display: flex;
+        justify-content: space-between;
+        width: 80%;
+        margin-bottom: 30px;
+      }
+
+      .selection-header h2 {
+        color: var(--neon-pink);
+        font-size: 2rem;
+      }
+
+      .selection-timer {
+        color: var(--neon-blue);
+        font-size: 2rem;
+        font-weight: bold;
+      }
+
+      .class-options {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 50px;
+      }
+
+      .class-option {
+        padding: 20px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        width: 250px;
+      }
+
+      .class-option:hover {
+        border-color: var(--neon-blue);
+      }
+
+      .class-option.selected {
+        border-color: var(--neon-green);
+        box-shadow: 0 0 20px var(--neon-green);
+      }
+
+      .class-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+      }
+
+      .light .class-icon {
+        border: 3px solid var(--neon-blue);
+        box-shadow: 0 0 15px var(--neon-blue);
+      }
+
+      .medium .class-icon {
+        border: 3px solid var(--neon-green);
+        box-shadow: 0 0 15px var(--neon-green);
+      }
+
+      .heavy .class-icon {
+        border: 3px solid var(--neon-pink);
+        box-shadow: 0 0 15px var(--neon-pink);
+      }
+
+      .class-option h3 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+      }
+
+      .class-option p {
+        margin-bottom: 5px;
+        color: var(--neon-blue);
+      }
+
+      .ability-selection {
+        width: 80%;
+        max-width: 800px;
+      }
+
+      .ability-selection h3 {
+        color: var(--neon-purple);
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .ability-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+      }
+
+      .ability-option {
+        padding: 15px;
+        border: 2px solid var(--neon-purple);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 180px;
+      }
+
+      .ability-option:hover {
+        background: rgba(211, 0, 197, 0.1);
+      }
+
+      .ability-option.selected {
+        border-color: var(--neon-green);
+        background: rgba(0, 255, 135, 0.1);
+        box-shadow: 0 0 10px var(--neon-green);
+      }
+
+      /* Игровой экран */
+      .game-screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+        background: var(--dark-blue);
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Мобильные элементы управления */
+      .mobile-controls {
+        position: absolute;
+        bottom: 20px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 20px;
+        pointer-events: none;
+      }
+
+      .joystick-area,
+      .shoot-area {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        position: relative;
+        pointer-events: auto;
+        display: none;
+      }
+
+      .joystick,
+      .shoot-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        pointer-events: none;
+      }
+
+      .ability-button {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: var(--neon-pink);
+        position: absolute;
+        right: 30px;
+        bottom: 120px;
+        pointer-events: auto;
+        box-shadow: 0 0 15px var(--neon-pink);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        display: none;
+      }
+
+      /* Игровой UI */
+      .game-ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        display: flex;
+        justify-content: space-between;
+        pointer-events: none;
+      }
+
+      .minimap {
+        width: 150px;
+        height: 150px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 2px solid var(--neon-blue);
+        border-radius: 5px;
+      }
+
+      .health-bar {
+        width: 200px;
+        height: 20px;
+        border: 2px solid var(--neon-pink);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px auto;
+      }
+
+      .health-fill {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(
+          90deg,
+          var(--neon-pink),
+          var(--neon-purple)
+        );
+        transition: width 0.3s;
+      }
+
+      .ability-cooldown {
+        width: 100px;
+        height: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--neon-blue);
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 10px auto;
+      }
+
+      .ability-cooldown-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--neon-blue);
+        transition: width 0.1s;
+      }
+
+      .score-display {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid var(--neon-blue);
+      }
+
+      .team-scores {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 5px;
+      }
+
+      .team-score {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+      }
+
+      .team-score.red {
+        background: var(--neon-pink);
+      }
+      .team-score.blue {
+        background: var(--neon-blue);
+      }
+      .team-score.green {
+        background: var(--neon-green);
+      }
+      .team-score.purple {
+        background: var(--neon-purple);
+      }
+
+      .game-timer {
+        font-size: 1.5rem;
+        text-align: center;
+        color: white;
+        text-shadow: 0 0 5px var(--neon-blue);
+      }
+
+      /* Магазин */
+      .shop-screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding-top: 50px;
+        background: radial-gradient(
+          ellipse at center,
+          var(--deep-purple) 0%,
+          var(--dark-blue) 100%
+        );
+      }
+
+      .shop-header {
+        display: flex;
+        justify-content: space-between;
+        width: 80%;
+        margin-bottom: 30px;
+      }
+
+      .shop-header h2 {
+        color: var(--neon-purple);
+        font-size: 2rem;
+      }
+
+      .coins-display {
+        color: var(--neon-green);
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .shop-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        width: 80%;
+        max-width: 900px;
+      }
+
+      .shop-item {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid var(--neon-blue);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s;
+      }
+
+      .shop-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(5, 217, 232, 0.3);
+      }
+
+      .shop-item h4 {
+        color: white;
+        margin-bottom: 10px;
+      }
+
+      .shop-item p {
+        color: var(--neon-green);
+        margin-bottom: 15px;
+      }
+
+      .buy-btn {
+        background: var(--neon-purple);
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .buy-btn:hover {
+        background: var(--neon-pink);
+      }
+
+      /* Настройки */
+      .settings-screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding-top: 50px;
+        background: radial-gradient(
+          ellipse at center,
+          var(--deep-purple) 0%,
+          var(--dark-blue) 100%
+        );
+      }
+
+      .settings-header h2 {
+        color: var(--neon-blue);
+        font-size: 2rem;
+        margin-bottom: 30px;
+      }
+
+      .controls-settings {
+        width: 80%;
+        max-width: 500px;
+      }
+
+      .controls-settings h3 {
+        color: var(--neon-green);
+        margin-bottom: 20px;
+      }
+
+      .control-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+      }
+
+      .control-option span {
+        color: white;
+        font-size: 1.1rem;
+      }
+
+      .control-input {
+        background: transparent;
+        border: 1px solid var(--neon-blue);
+        color: white;
+        padding: 5px 10px;
+        width: 50px;
+        text-align: center;
+        border-radius: 3px;
+      }
+
+      /* Адаптивность */
+      @media (max-width: 768px) {
+        .menu-header h1 {
+          font-size: 2.5rem;
+        }
+
+        .menu-header h2 {
+          font-size: 1.5rem;
+        }
+
+        .menu-buttons button {
+          padding: 12px 30px;
+          font-size: 1.2rem;
+        }
+
+        .room-options {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .class-options {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .class-option {
+          width: 100%;
+        }
+
+        .joystick-area,
+        .shoot-area,
+        .ability-button {
+          display: block;
+        }
+
+        .minimap {
+          width: 100px;
+          height: 100px;
+        }
+      }
+
+      /* Анимации */
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.5;
+        }
+      }
+
+      .pulse {
+        animation: pulse 1.5s infinite;
+      }
+
+      /* Эффекты для способностей */
+      .stealth-effect {
+        opacity: 0.5;
+        border: 2px dashed var(--neon-blue);
+      }
+
+      .dash-effect {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--neon-blue),
+          transparent
+        );
+      }
+
+      .wall-effect {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid var(--neon-purple);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <!-- Экран загрузки -->
+      <div class="loading-screen">
+        <div class="synthwave-logo"></div>
+        <div class="loading-bar">
+          <div class="progress"></div>
+        </div>
+      </div>
+
+      <!-- Главное меню -->
+      <div class="main-menu">
+        <div class="menu-header">
+          <h1>SYNTHWAVE</h1>
+          <h2>CUBE BATTLE</h2>
+        </div>
+        <div class="menu-buttons">
+          <button class="play-btn">PLAY</button>
+          <button class="shop-btn">SHOP</button>
+          <button class="settings-btn">SETTINGS</button>
+        </div>
+      </div>
+
+      <!-- Экран выбора комнаты -->
+      <div class="room-selection">
+        <div class="room-header">
+          <h2>SELECT MODE</h2>
+        </div>
+        <div class="room-options">
+          <div class="room-option" data-mode="solo">
+            <h3>SOLO</h3>
+            <p>1 vs 1 vs 1 vs 1</p>
+          </div>
+          <div class="room-option" data-mode="duo">
+            <h3>DUO</h3>
+            <p>2 vs 2</p>
+          </div>
+        </div>
+        <div class="room-search">
+          <div class="searching">
+            <div class="search-icon"></div>
+            <p>SEARCHING FOR PLAYERS...</p>
+            <div class="players-found">0/4</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Экран выбора класса -->
+      <div class="class-selection">
+        <div class="selection-header">
+          <h2>SELECT YOUR CLASS</h2>
+          <div class="selection-timer">30</div>
+        </div>
+        <div class="class-options">
+          <div class="class-option" data-class="light">
+            <div class="class-icon light"></div>
+            <h3>LIGHT</h3>
+            <p>Speed: ★★★★★</p>
+            <p>Health: ★★</p>
+          </div>
+          <div class="class-option" data-class="medium">
+            <div class="class-icon medium"></div>
+            <h3>MEDIUM</h3>
+            <p>Speed: ★★★</p>
+            <p>Health: ★★★</p>
+          </div>
+          <div class="class-option" data-class="heavy">
+            <div class="class-icon heavy"></div>
+            <h3>HEAVY</h3>
+            <p>Speed: ★★</p>
+            <p>Health: ★★★★★</p>
+          </div>
+        </div>
+        <div class="ability-selection">
+          <h3>SELECT ABILITY</h3>
+          <div class="ability-options"></div>
+        </div>
+      </div>
+
+      <!-- Игровой экран -->
+      <div class="game-screen">
+        <canvas id="gameCanvas"></canvas>
+        <div class="mobile-controls">
+          <div class="joystick-area" id="moveJoystick">
+            <div class="joystick"></div>
+          </div>
+          <div class="shoot-area" id="shootJoystick">
+            <div class="shoot-button"></div>
+          </div>
+          <div class="ability-button"></div>
+        </div>
+        <div class="game-ui">
+          <div class="minimap"></div>
+          <div class="health-bar">
+            <div class="health-fill"></div>
+          </div>
+          <div class="ability-cooldown"></div>
+          <div class="score-display">
+            <div class="team-scores">
+              <div class="team-score red"></div>
+              <div class="team-score blue"></div>
+              <div class="team-score green"></div>
+              <div class="team-score purple"></div>
+            </div>
+            <div class="game-timer">05:00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Магазин -->
+      <div class="shop-screen">
+        <div class="shop-header">
+          <h2>SYNTHWAVE SHOP</h2>
+          <div class="coins-display">0</div>
+        </div>
+        <div class="shop-items">
+          <!-- Динамически заполняемые предметы -->
+        </div>
+      </div>
+
+      <!-- Настройки -->
+      <div class="settings-screen">
+        <div class="settings-header">
+          <h2>SETTINGS</h2>
+        </div>
+        <div class="controls-settings">
+          <h3>CONTROLS</h3>
+          <div class="control-option">
+            <span>Move Up:</span>
+            <input
+              type="text"
+              class="control-input"
+              data-action="up"
+              value="w" />
+          </div>
+          <div class="control-option">
+            <span>Move Down:</span>
+            <input
+              type="text"
+              class="control-input"
+              data-action="down"
+              value="s" />
+          </div>
+          <div class="control-option">
+            <span>Move Left:</span>
+            <input
+              type="text"
+              class="control-input"
+              data-action="left"
+              value="a" />
+          </div>
+          <div class="control-option">
+            <span>Move Right:</span>
+            <input
+              type="text"
+              class="control-input"
+              data-action="right"
+              value="d" />
+          </div>
+          <div class="control-option">
+            <span>Shoot:</span>
+            <input
+              type="text"
+              class="control-input"
+              data-action="shoot"
+              value=" " />
+          </div>
+          <div class="control-option">
+            <span>Ability:</span>
+            <input
+              type="text"
+              class="control-input"
+              data-action="ability"
+              value="Shift" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
